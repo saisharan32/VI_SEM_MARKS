@@ -61,53 +61,77 @@
   <button id="submitBtn">Submit</button>
   <div id="output" class="result"></div>
 
+
   <script>
-    // Minimal Firebase config
-    const firebaseConfig = {
-      databaseURL: "https://vi-sem-realtime-default-rtdb.firebaseio.com/"
-    };
+  // Firebase config (if you're using it)
+  const firebaseConfig = {
+    databaseURL: "https://vi-sem-realtime-default-rtdb.firebaseio.com/"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+  function logRequest(pin) {
+    const timestamp = new Date().toISOString();
+    db.ref("logs").push({ pin, timestamp });
+  }
 
-    // Log function
-    function logRequest(pin) {
-      const timestamp = new Date().toISOString();
-      db.ref("logs").push({ pin, timestamp });
+  let studentData = [];
+  fetch("data.json")
+    .then(res => res.json())
+    .then(data => studentData = data)
+    .catch(err => console.error("Failed to load data.json", err));
+
+  document.getElementById("submitBtn").addEventListener("click", function () {
+    const pin = document.getElementById("pinInput").value.trim();
+    const student = studentData.find(s => s.PIN === pin);
+    const output = document.getElementById("output");
+    output.innerHTML = "";
+
+    logRequest(pin);
+
+    if (student) {
+      // Photo
+      const img = document.createElement("img");
+      img.src = `photos/${pin}.jpeg`;
+      img.alt = "Student Photo";
+      img.style.width = "100px";
+      img.style.height = "130px";
+      img.style.objectFit = "cover";
+      img.style.border = "2px solid #444";
+      img.style.borderRadius = "8px";
+      img.style.marginRight = "20px";
+      img.onerror = function () {
+        this.src = "photos/default.jpeg";
+      };
+
+      // Result block
+      const details = document.createElement("div");
+      details.innerHTML = `
+        <p><strong>Name:</strong> ${student.NAME}</p>
+        <p><strong>MID1:</strong> ${student.MID1}</p>
+        <p><strong>MID2:</strong> ${student.MID2}</p>
+        <p><strong>Internal:</strong> ${student.INTERNAL}</p>
+        <p><strong>Semester:</strong> ${student.SEMESTER}</p>
+        <p><strong>Total:</strong> ${student.TOTAL}</p>
+        <p><strong>Grade:</strong> ${student.GRADE}</p>
+        <p><strong>GPA:</strong> ${student.GPA}</p>
+      `;
+
+      // Combine photo + result
+      const container = document.createElement("div");
+      container.style.display = "flex";
+      container.style.alignItems = "flex-start";
+      container.appendChild(img);
+      container.appendChild(details);
+
+      output.appendChild(container);
+    } else {
+      output.innerHTML = `<p class="error">No data found for this PIN.</p>`;
     }
+  });
+</script>
 
-    // Load student data
-    let studentData = [];
-    fetch('data.json')
-      .then(res => res.json())
-      .then(data => studentData = data)
-      .catch(err => console.error("Failed to load data.json", err));
 
-    // Submit button listener
-    document.getElementById('submitBtn').addEventListener('click', function () {
-      const pin = document.getElementById('pinInput').value.trim();
-      const student = studentData.find(s => s.PIN === pin);
-      const output = document.getElementById('output');
-
-      logRequest(pin);
-
-      if (student) {
-        output.innerHTML = `
-          <p><strong>Name:</strong> ${student.NAME}</p>
-          <p><strong>MID1:</strong> ${student.MID1}</p>
-          <p><strong>MID2:</strong> ${student.MID2}</p>
-          <p><strong>Internal:</strong> ${student.INTERNAL}</p>
-          <p><strong>Semester:</strong> ${student.SEMESTER}</p>
-          <p><strong>Total:</strong> ${student.TOTAL}</p>
-          <p><strong>Grade:</strong> ${student.GRADE}</p>
-          <p><strong>GPA:</strong> ${student.GPA}</p>
-        `;
-      } else {
-        output.innerHTML = '<p class="error">No data found for this PIN.</p>';
-      }
-    });
-  </script>
   <H5> Desigined by Sharan_32</H5>
   <h6>Keep Smiling (: </h6>
   

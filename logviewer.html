@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Real-Time Log Viewer</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+</head>
+<body>
+  <h2>PIN Access Log</h2>
+  <ul id="logList"></ul>
+
+  <script>
+    const firebaseConfig = {
+      databaseURL: "https://vi-sem-realtime-default-rtdb.firebaseio.com/"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const logList = document.getElementById("logList");
+
+    db.ref("logs").on("child_added", function(snapshot) {
+      const data = snapshot.val();
+      const item = document.createElement("li");
+      item.textContent = `PIN: ${data.pin} | Time: ${new Date(data.timestamp).toLocaleString()}`;
+      logList.prepend(item);
+    });
+  </script>
+</body>
+</html>

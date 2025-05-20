@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sharan_32</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      padding: 20px;
+      text-align: center;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+  <!-- Firebase Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+</head>
+<body>
+  <h1>VI SEMESTER MARKS (APR-2025)</h1>
+  <input type="text" id="pinInput" placeholder="(e.g., 22005-CE-045)">
+  <button id="submitBtn">Submit</button>
+  <div id="output" class="result"></div>
+
+  <script>
+    // Minimal Firebase config
+    const firebaseConfig = {
+      databaseURL: "https://vi-sem-realtime-default-rtdb.firebaseio.com/"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Log function
+    function logRequest(pin) {
+      const timestamp = new Date().toISOString();
+      db.ref("logs").push({ pin, timestamp });
+    }
+
+    // Load student data
+    let studentData = [];
+    fetch('data.json')
+      .then(res => res.json())
+      .then(data => studentData = data)
+      .catch(err => console.error("Failed to load data.json", err));
+
+    // Submit button listener
+    document.getElementById('submitBtn').addEventListener('click', function () {
+      const pin = document.getElementById('pinInput').value.trim();
+      const student = studentData.find(s => s.PIN === pin);
+      const output = document.getElementById('output');
+
+      logRequest(pin);
+
+      if (student) {
+        output.innerHTML = `
+          <p><strong>Name:</strong> ${student.NAME}</p>
+          <p><strong>MID1:</strong> ${student.MID1}</p>
+          <p><strong>MID2:</strong> ${student.MID2}</p>
+          <p><strong>Internal:</strong> ${student.INTERNAL}</p>
+          <p><strong>Semester:</strong> ${student.SEMESTER}</p>
+          <p><strong>Total:</strong> ${student.TOTAL}</p>
+          <p><strong>Grade:</strong> ${student.GRADE}</p>
+          <p><strong>GPA:</strong> ${student.GPA}</p>
+        `;
+      } else {
+        output.innerHTML = '<p class="error">No data found for this PIN.</p>';
+      }
+    });
+  </script>
+  <H5> Desigined by Sharan_32</H5>
+  <h6>Keep Smiling (: </h6>
+</body>
+</html>

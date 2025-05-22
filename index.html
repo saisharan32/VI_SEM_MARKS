@@ -71,9 +71,57 @@
   const db = firebase.database();
 
   function logRequest(pin) {
-    const timestamp = new Date().toISOString();
-    db.ref("logs").push({ pin, timestamp });
+  const timestamp = new Date().toISOString();
+  const userAgent = navigator.userAgent;
+  const platform = navigator.platform;
+
+  // Try to get precise location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        saveLog(pin, timestamp, userAgent, platform, lat, lon, "GPS");
+      },
+      (error) => {
+        // If permission denied or failed, use IP-based fallback
+        fetch("https://ipinfo.io/json?token=5a7c1422d7029a")
+          .then(res => res.json())
+          .then(data => {
+            const loc = data.loc ? data.loc.split(",") : [null, null];
+            saveLog(pin, timestamp, userAgent, platform, loc[0], loc[1], "IP");
+          })
+          .catch(() => {
+            saveLog(pin, timestamp, userAgent, platform, null, null, "Unavailable");
+          });
+      },
+      { timeout: 5000 }
+    );
+  } else {
+    // If geolocation not supported
+    fetch("https://ipinfo.io/json?token=5a7c1422d7029a")
+      .then(res => res.json())
+      .then(data => {
+        const loc = data.loc ? data.loc.split(",") : [null, null];
+        saveLog(pin, timestamp, userAgent, platform, loc[0], loc[1], "IP");
+      })
+      .catch(() => {
+        saveLog(pin, timestamp, userAgent, platform, null, null, "Unavailable");
+      });
   }
+}
+
+function saveLog(pin, timestamp, userAgent, platform, lat, lon, method) {
+  db.ref("logs").push({
+    pin,
+    timestamp,
+    userAgent,
+    platform,
+    locationMethod: method,
+    latitude: lat,
+    longitude: lon
+  });
+}
 
   let studentData = [];
   fetch("data.json")

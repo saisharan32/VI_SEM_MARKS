@@ -7,15 +7,37 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  
   <style>
-    #map { height: 400px; width: 100%; margin-top: 20px; }
-    body { font-family: Arial; padding: 20px; }
-    button { padding: 8px 12px; margin: 10px 0; }
+    body {
+      font-family: Arial;
+      padding: 20px;
+    }
+    #map {
+      height: 400px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 8px 12px;
+      margin: 10px 0;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    li {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+    }
   </style>
+
 </head>
 <body>
   <h2>VI Sem Access Log</h2>
 <div id="map"></div>
+
+<h4> chssy32@gmail.com</h4>
   <button onclick="downloadCSV()">Download CSV</button>
   <ul id="logList"></ul>
   

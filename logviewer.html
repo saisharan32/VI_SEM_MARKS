@@ -2,12 +2,22 @@
 <html>
 <head>
   <title>Real-Time Log Viewer</title>
+  <meta charset="UTF-8" />
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map { height: 400px; width: 100%; margin-top: 20px; }
+    body { font-family: Arial; padding: 20px; }
+    button { padding: 8px 12px; margin: 10px 0; }
+  </style>
 </head>
 <body>
-  <h2>PIN Access Log</h2>
+  <h2>VI Sem Access Log</h2>
+  <button onclick="downloadCSV()">Download CSV</button>
   <ul id="logList"></ul>
+  <div id="map"></div>
 
   <script>
     const firebaseConfig = {
@@ -17,13 +27,38 @@
     const db = firebase.database();
 
     const logList = document.getElementById("logList");
+    const allLogs = [];
+
+    // Leaflet map setup
+    const map = L.map('map').setView([20.5937, 78.9629], 4); // Centered over India
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
     db.ref("logs").on("child_added", function(snapshot) {
       const data = snapshot.val();
-      const item = document.createElement("li");
-      item.textContent = `PIN: ${data.pin} | Time: ${new Date(data.timestamp).toLocaleString()}`;
-      logList.prepend(item);
+      allLogs.push(data);
+
+      const li = document.createElement("li");
+      li.textContent = `PIN: ${data.pin} | Time: ${new Date(data.timestamp).toLocaleString()} | IP: ${data.ip || "N/A"} | ${data.platform || ""} | ${data.userAgent?.substring(0, 30) || ""} | ${data.locationMethod} | ${data.latitude || "?"}, ${data.longitude || "?"}`;
+      logList.prepend(li);
+
+      if (data.latitude && data.longitude) {
+        L.marker([data.latitude, data.longitude]).addTo(map)
+          .bindPopup(`PIN: ${data.pin}<br>${new Date(data.timestamp).toLocaleString()}`)
+          .openPopup();
+      }
     });
+
+    function downloadCSV() {
+      let csv = "PIN,Time,IP,Platform,UserAgent,Lat,Lon,Method\\n";
+      allLogs.forEach(log => {
+        csv += `${log.pin},${log.timestamp},${log.ip || ""},${log.platform || ""},"${log.userAgent || ""}",${log.latitude || ""},${log.longitude || ""},${log.locationMethod || ""}\\n`;
+      });
+      const blob = new Blob([csv], { type: "text/csv" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "access_logs.csv";
+      link.click();
+    }
   </script>
 </body>
 </html>

@@ -75,46 +75,51 @@
   const userAgent = navigator.userAgent;
   const platform = navigator.platform;
 
-  // Try to get precise location
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const lat = position.coords.latitude;
         const lon = position.coords.longitude;
-        saveLog(pin, timestamp, userAgent, platform, lat, lon, "GPS");
-      },
-      (error) => {
-        // If permission denied or failed, use IP-based fallback
         fetch("https://ipinfo.io/json?token=5a7c1422d7029a")
           .then(res => res.json())
           .then(data => {
-            const loc = data.loc ? data.loc.split(",") : [null, null];
-            saveLog(pin, timestamp, userAgent, platform, loc[0], loc[1], "IP");
+            saveLog(pin, timestamp, data.ip, userAgent, platform, lat, lon, "GPS");
           })
           .catch(() => {
-            saveLog(pin, timestamp, userAgent, platform, null, null, "Unavailable");
+            saveLog(pin, timestamp, "N/A", userAgent, platform, lat, lon, "GPS");
+          });
+      },
+      (error) => {
+        fetch("https://ipinfo.io/json?token=5a7c1422d7029a")
+          .then(res => res.json())
+          .then(data => {
+            const [lat, lon] = data.loc ? data.loc.split(",") : [null, null];
+            saveLog(pin, timestamp, data.ip, userAgent, platform, lat, lon, "IP");
+          })
+          .catch(() => {
+            saveLog(pin, timestamp, "N/A", userAgent, platform, null, null, "Unavailable");
           });
       },
       { timeout: 5000 }
     );
   } else {
-    // If geolocation not supported
     fetch("https://ipinfo.io/json?token=5a7c1422d7029a")
       .then(res => res.json())
       .then(data => {
-        const loc = data.loc ? data.loc.split(",") : [null, null];
-        saveLog(pin, timestamp, userAgent, platform, loc[0], loc[1], "IP");
+        const [lat, lon] = data.loc ? data.loc.split(",") : [null, null];
+        saveLog(pin, timestamp, data.ip, userAgent, platform, lat, lon, "IP");
       })
       .catch(() => {
-        saveLog(pin, timestamp, userAgent, platform, null, null, "Unavailable");
+        saveLog(pin, timestamp, "N/A", userAgent, platform, null, null, "Unavailable");
       });
   }
 }
 
-function saveLog(pin, timestamp, userAgent, platform, lat, lon, method) {
+function saveLog(pin, timestamp, ip, userAgent, platform, lat, lon, method) {
   db.ref("logs").push({
     pin,
     timestamp,
+    ip,
     userAgent,
     platform,
     locationMethod: method,
@@ -122,7 +127,6 @@ function saveLog(pin, timestamp, userAgent, platform, lat, lon, method) {
     longitude: lon
   });
 }
-
   let studentData = [];
   fetch("data.json")
     .then(res => res.json())

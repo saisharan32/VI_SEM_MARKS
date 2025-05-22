@@ -80,7 +80,7 @@
       (position) => {
         const lat = position.coords.latitude;
         const lon = position.coords.longitude;
-        fetch("https://ipinfo.io/json?token=5a7c1422d7029a")
+        fetch("https://ipapi.is/json/?key=c66769f1781add75")
           .then(res => res.json())
           .then(data => {
             saveLog(pin, timestamp, data.ip, userAgent, platform, lat, lon, "GPS");
@@ -90,7 +90,7 @@
           });
       },
       (error) => {
-        fetch("https://ipinfo.io/json?token=5a7c1422d7029a")
+        fetch("https://ipapi.is/json/?key=c66769f1781add75")
           .then(res => res.json())
           .then(data => {
             const [lat, lon] = data.loc ? data.loc.split(",") : [null, null];
@@ -103,7 +103,7 @@
       { timeout: 5000 }
     );
   } else {
-    fetch("https://ipinfo.io/json?token=5a7c1422d7029a")
+    fetch("https://ipapi.is/json/?key=c66769f1781add75")
       .then(res => res.json())
       .then(data => {
         const [lat, lon] = data.loc ? data.loc.split(",") : [null, null];
